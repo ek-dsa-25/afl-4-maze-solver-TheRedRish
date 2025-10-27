@@ -130,10 +130,45 @@ class Cell {
     connectedNeighbors(grid) {
         let neighbors = [];
 
-        // TODO: Tjek om naboen nord for, hvis den findes, har en væg
-        // TODO: Tjek om naboen til venstre, hvis den findes, har en væg
-        // TODO: Tjek om naboen syd for, hvis den findes, har en væg
-        // TODO: Tjek om naboen til højre, hvis den findes, har en væg
+        // Vi er ikke den nordligste celle
+        if (this.y > 0) {
+            const nord_x = this.x;
+            const nord_y = this.y - 1;
+            const nord_nabo = grid[nord_x][nord_y];
+            if (!nord_nabo.walls.bottom) {
+                neighbors.push(nord_nabo);
+            }
+        }
+
+        // Vi er ikke cellen mest til venstre
+        if (this.x > 0) {
+            const venstre_x = this.x - 1;
+            const venstre_y = this.y;
+            const venstre_nabo = grid[venstre_x][venstre_y];
+            if (!venstre_nabo.walls.right) {
+                neighbors.push(venstre_nabo);
+            }
+        }
+
+        // Vi er ikke den sydligste celle
+        if (this.y < grid[0].length - 1) {
+            const syd_x = this.x;
+            const syd_y = this.y + 1;
+            const syd_nabo = grid[syd_x][syd_y];
+            if (!syd_nabo.walls.top) {
+                neighbors.push(syd_nabo);
+            }
+        }
+
+        // Vi er ikke cellen mest til højre
+        if (this.x < grid.length - 1) {
+            const højre_x = this.x + 1;
+            const højre_y = this.y;
+            const højre_nabo = grid[højre_x][højre_y];
+            if (!højre_nabo.walls.left) {
+                neighbors.push(højre_nabo);
+            }
+        }
 
         return neighbors;
     }
@@ -235,8 +270,26 @@ class MazeSolver {
         const startCell = this.maze.grid[startX][startY];
         const endCell = this.maze.grid[endX][endY];
 
-        // TODO: Lav `findPath()` vha. enten DFS (stak) eller BFS (queue)
+        let currentCell = startCell;
+        let stack = [];
 
+        currentCell.visited = true;
+
+        while (currentCell != null) {
+            const connectedNeighbors = currentCell.connectedNeighbors(this.maze.grid);
+            const unvisitedConnectedNeighbors = connectedNeighbors.filter((cell) => !cell.visited)
+            if (unvisitedConnectedNeighbors.length > 0) {
+                const randomNeighborCell = unvisitedConnectedNeighbors[randomInteger(0, unvisitedConnectedNeighbors.length)];
+                stack.push(currentCell);
+                if (currentCell === endCell) {
+                    return stack;
+                }
+                currentCell = randomNeighborCell;
+                currentCell.visited = true;
+            } else {
+                currentCell = stack.pop();
+            }
+        }
         return null;
     }
 
@@ -289,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endX = maze.cols - 1;
     const endY = maze.rows - 1;
 
-    solver.findPath(startX, startY, endX, endY);
+    const path = solver.findPath(startX, startY, endX, endY);
     solver.drawPathStepwise(path, '#ff0000', 20);
 
     console.log(maze);
