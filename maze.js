@@ -180,12 +180,20 @@ class Cell {
 
     // Hjælpefunktion til MazeSolver: Fremhæver cellen som en del af stien
     drawPath(ctx, cellWidth, color = '#ff0000') {
-        // TODO: Personliggør denne funktion.
-        ctx.fillStyle = color;
-        const px = this.x * cellWidth + cellWidth * 0.25;
-        const py = this.y * cellWidth + cellWidth * 0.25;
-        const size = cellWidth * 0.5;
-        ctx.fillRect(px, py, size, size);
+        if (!this.parent) return; // No parent means this is the start cell
+
+        const startX = this.parent.x * cellWidth + cellWidth / 2;
+        const startY = this.parent.y * cellWidth + cellWidth / 2;
+        const endX = this.x * cellWidth + cellWidth / 2;
+        const endY = this.y * cellWidth + cellWidth / 2;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = cellWidth * 0.25;
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
     }
 }
 
@@ -281,11 +289,13 @@ class MazeSolver {
             if (unvisitedConnectedNeighbors.length > 0) {
                 const randomNeighborCell = unvisitedConnectedNeighbors[randomInteger(0, unvisitedConnectedNeighbors.length)];
                 stack.push(currentCell);
-                if (currentCell === endCell) {
-                    return stack;
-                }
+                randomNeighborCell.parent = currentCell;
                 currentCell = randomNeighborCell;
                 currentCell.visited = true;
+                if (currentCell === endCell) {
+                    stack.push(currentCell);
+                    return stack;
+                }
             } else {
                 currentCell = stack.pop();
             }
@@ -345,5 +355,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = solver.findPath(startX, startY, endX, endY);
     solver.drawPathStepwise(path, '#ff0000', 20);
 
-    console.log(maze);
+    console.log(path);
 })
